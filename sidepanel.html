@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Speakito</title>
+  <link rel="stylesheet" href="sidepanel.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <svg class="brand-icon" viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M4 13v6a1 1 0 0 0 1 1h3l5 4V8L8 12H5a1 1 0 0 0-1 1z" fill="currentColor"/>
+        <path d="M18 11c1.8 1.1 1.8 8.9 0 10" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M22 7.5c3.6 2.4 3.6 14.6 0 17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+      </svg>
+      <span>Speakito</span>
+    </div>
+    <div class="header-actions">
+      <button id="btn-settings" class="icon-btn" title="Ajustes">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M19.4 13c.04-.33.06-.66.06-1s-.02-.67-.06-1l1.7-1.3-1.6-2.8-2 .8a6.6 6.6 0 0 0-1.7-1l-.3-2.1H9.5l-.3 2.1c-.6.25-1.17.58-1.7 1l-2-.8-1.6 2.8L5.6 11c-.04.33-.06.66-.06 1s.02.67.06 1l-1.7 1.3 1.6 2.8 2-.8c.53.42 1.1.75 1.7 1l.3 2.1h3.9l.3-2.1c.6-.25 1.17-.58 1.7-1l2 .8 1.6-2.8-1.7-1.3z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button id="btn-about" class="icon-btn" title="Acerca de">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M9.5 9.5a2.5 2.5 0 0 1 4.5 1.5c0 1.7-2 1.8-2 3.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <circle cx="12" cy="17" r="1" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Modal: Acerca de -->
+  <div id="about-backdrop" class="modal-backdrop hidden">
+    <section class="panel modal">
+      <div class="modal-head">
+        <h3>Acerca de Speakito</h3>
+        <button id="btn-about-close" class="icon-btn" title="Cerrar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <p class="about-line">Creado por <strong>Felipe Farías A.</strong></p>
+      <p class="about-line">
+        <a href="https://www.linkedin.com/in/felipefariasalfaro/" target="_blank" rel="noopener">LinkedIn</a>
+      </p>
+      <p class="about-line">
+        <a href="https://github.com/FelipeFariasAlfaro/speakito" target="_blank" rel="noopener">GitHub del proyecto</a>
+      </p>
+    </section>
+  </div>
+
+  <!-- Barra de reproducción (visible solo mientras se habla) -->
+  <div id="player" class="player hidden">
+    <button id="pl-toggle" class="pl-btn" title="Pausar">
+      <svg class="pl-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="5" width="3.5" height="14" rx="1" fill="currentColor"/><rect x="13.5" y="5" width="3.5" height="14" rx="1" fill="currentColor"/></svg>
+    </button>
+    <button id="pl-stop" class="pl-btn" title="Detener">
+      <svg class="pl-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></svg>
+    </button>
+    <div class="pl-progress"><div id="pl-bar"></div></div>
+    <span id="pl-status" class="pl-status">Reproduciendo…</span>
+  </div>
+
+  <div id="settings-backdrop" class="modal-backdrop hidden">
+  <section id="settings" class="panel modal">
+    <div class="modal-head">
+      <h3>Ajustes</h3>
+      <button id="btn-settings-close" class="icon-btn" title="Cerrar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <!-- 1. Proveedor -->
+    <label>Proveedor de IA
+      <select id="set-provider">
+        <option value="gemini">Gemini</option>
+        <option value="claude">Claude (Anthropic)</option>
+        <option value="openai">OpenAI</option>
+        <option value="deepseek">DeepSeek</option>
+        <option value="ollama">Ollama (local)</option>
+      </select>
+    </label>
+
+    <!-- 2. API key (proveedores en nube) -->
+    <div id="key-group">
+      <label>API key
+        <input id="set-key" type="password" placeholder="Pega aquí tu API key" />
+      </label>
+    </div>
+
+    <!-- URL (solo Ollama) -->
+    <div id="ollama-group" class="hidden">
+      <label>URL de Ollama
+        <input id="set-ollama-url" type="text" placeholder="http://localhost:11434" />
+      </label>
+    </div>
+
+    <!-- 3. Validar / traer modelos -->
+    <button id="btn-validate" class="ghost">
+      <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 12h9m-3 0v4m-3-4v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Validar y traer modelos
+    </button>
+    <div id="validate-msg" class="hint"></div>
+
+    <!-- 4-5. Modelos disponibles -->
+    <label id="model-group" class="hidden">Modelo
+      <select id="set-model"></select>
+    </label>
+
+    <label>Idioma de salida
+      <select id="set-lang">
+        <option value="español">Español</option>
+        <option value="inglés">Inglés</option>
+      </select>
+    </label>
+
+    <label>Voz
+      <select id="set-voice">
+        <option value="">Automática (según idioma)</option>
+      </select>
+    </label>
+
+    <label>Tema de colores
+      <select id="set-theme">
+        <option value="ocean">Ocean (por defecto)</option>
+        <option value="midnight">Midnight</option>
+        <option value="forest">Forest</option>
+        <option value="sunset">Sunset</option>
+        <option value="grape">Grape</option>
+        <option value="amber">Amber</option>
+        <option value="rose">Rose</option>
+        <option value="teal">Teal</option>
+        <option value="slate">Slate</option>
+        <option value="crimson">Crimson</option>
+        <option value="lime">Lime</option>
+        <option value="indigo">Indigo</option>
+        <option value="mono-light">Mono Light</option>
+        <option value="sepia">Sepia</option>
+        <option value="cyberpunk">Cyberpunk</option>
+        <option value="coffee">Coffee</option>
+      </select>
+    </label>
+
+    <!-- 6. Guardar -->
+    <button id="btn-save" class="primary" disabled>Guardar</button>
+  </section>
+  </div>
+
+  <section class="controls">
+    <div class="row">
+      <button id="btn-read" class="primary">
+        <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10-6.5a1 1 0 0 0 0-1.72l-10-6.5A1 1 0 0 0 8 5.5z" fill="currentColor"/></svg>
+        Leer página
+      </button>
+      <label class="rate">Velocidad
+        <input id="rate" type="range" min="0.5" max="2" step="0.1" value="1" />
+      </label>
+    </div>
+    <div class="row">
+      <button id="btn-navread" class="ghost" title="Sigue leyendo aunque cambies de pestaña">
+        <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 9l5 3-5 3z" fill="currentColor"/></svg>
+        Léemelo navegando
+      </button>
+      <button id="btn-playlist" class="ghost" title="Lee todas las pestañas abiertas, una tras otra">
+        <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h11M4 12h11M4 17h7M17 10v8l5-4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Leer pestañas
+      </button>
+      <button id="btn-bias" class="ghost" title="Detecta sesgos y afirmaciones sin fuente">
+        <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 7l7-3 7 3M4 11a4 4 0 0 0 8 0M12 11a4 4 0 0 0 8 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Detectar sesgo
+      </button>
+      <button id="btn-simple" class="ghost" title="Explica la página en palabras simples">
+        <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.2 1 2V17h6v-1.5c0-.8.3-1.3 1-2A6 6 0 0 0 12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Explícame simple
+      </button>
+    </div>
+    <div class="row">
+      <button id="btn-export" class="ghost" disabled>
+        <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10m0 0l-3.5-3.5M12 14l3.5-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 17v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Exportar
+      </button>
+      <select id="export-format" class="fmt" title="Formato de exportación">
+        <option value="txt">.txt</option>
+        <option value="md">.md</option>
+        <option value="docx">.docx</option>
+      </select>
+    </div>
+  </section>
+
+  <section class="chat" id="chat"></section>
+
+  <footer class="composer">
+    <textarea id="question" rows="2" placeholder="Pregunta algo sobre esta página..."></textarea>
+    <button id="btn-ask" class="primary" title="Enviar">
+      <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 20 4l-7.5 16-2.2-6.3L4 11.5z" fill="currentColor"/></svg>
+    </button>
+  </footer>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>
