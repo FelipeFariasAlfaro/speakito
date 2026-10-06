@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Política de Privacidad — Speakito</title>
+  <style>
+    :root { --bg: #0f1221; --panel: #1a1e33; --text: #e6e8f0; --muted: #9aa3c0; --accent: #26a8e0; --border: #2a3050; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; line-height: 1.6; }
+    main { max-width: 760px; margin: 0 auto; padding: 48px 20px 80px; }
+    h1 { font-size: 2rem; margin-bottom: 4px; }
+    h2 { margin-top: 32px; color: var(--accent); font-size: 1.25rem; }
+    .updated { color: var(--muted); font-size: .9rem; margin-bottom: 24px; }
+    a { color: var(--accent); }
+    ul { padding-left: 20px; }
+    li { margin: 6px 0; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px; margin: 20px 0; }
+    footer { margin-top: 48px; color: var(--muted); font-size: .9rem; border-top: 1px solid var(--border); padding-top: 16px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Política de Privacidad de Speakito</h1>
+    <p class="updated">Última actualización: 5 de octubre de 2026</p>
+
+    <p>Speakito es una extensión de navegador de código abierto que lee en voz alta el contenido de la página web actual y permite hacer preguntas sobre él mediante un proveedor de inteligencia artificial elegido por el usuario. Esta política explica qué datos maneja la extensión y cómo.</p>
+
+    <div class="card">
+      <h2>Resumen</h2>
+      <ul>
+        <li>Speakito <strong>no tiene servidores propios</strong> ni recopila datos personales.</li>
+        <li>No se usan rastreadores, analítica ni publicidad.</li>
+        <li>Tu configuración se guarda <strong>localmente</strong> en tu navegador.</li>
+        <li>El contenido de la página solo se envía al <strong>proveedor de IA que tú configures</strong>, usando <strong>tu propia API key</strong>.</li>
+      </ul>
+    </div>
+
+    <h2>Datos que maneja la extensión</h2>
+    <h3>Configuración del usuario</h3>
+    <p>Speakito guarda localmente tus preferencias: proveedor de IA y su API key, modelo elegido (o URL de Ollama), idioma de salida, voz, velocidad de lectura y tema de color. Estos datos permanecen en tu navegador y no se transmiten a los desarrolladores de Speakito.</p>
+
+    <h3>Contenido de la página</h3>
+    <p>Cuando invocas una acción de lectura o consulta, Speakito extrae el texto de la página activa (o del documento abierto) para generar la lectura en voz alta y, si lo pides, enviarlo al proveedor de IA que configuraste para resumir, explicar, analizar o responder preguntas. Este contenido solo se envía al proveedor de IA que <strong>tú</strong> elegiste y se procesa según la política de privacidad de ese proveedor. Si usas Ollama de forma local, el contenido no sale de tu equipo.</p>
+
+    <h2>Terceros</h2>
+    <p>Speakito puede comunicarse con el proveedor de IA que configures (por ejemplo Gemini, Claude, OpenAI, DeepSeek u Ollama). El tratamiento de los datos enviados a esos servicios se rige por sus respectivas políticas de privacidad. Speakito no comparte tus datos con ningún otro tercero.</p>
+
+    <h2>Lo que Speakito NO hace</h2>
+    <ul>
+      <li>No recopila ni almacena tu historial de navegación.</li>
+      <li>No vende ni comparte datos personales.</li>
+      <li>No incluye rastreadores, analítica ni publicidad.</li>
+      <li>No envía datos a servidores controlados por los desarrolladores.</li>
+    </ul>
+
+    <h2>Permisos</h2>
+    <p>Speakito solicita únicamente los permisos necesarios para su funcionamiento (acceso a la pestaña activa cuando lo invocas, almacenamiento de preferencias, síntesis de voz y gestión de pestañas para las funciones de lectura). Cada permiso se usa solo para la finalidad descrita en la ficha de la extensión.</p>
+
+    <h2>Cambios en esta política</h2>
+    <p>Si esta política cambia, se actualizará en el repositorio del proyecto con una nueva fecha de "Última actualización".</p>
+
+    <h2>Contacto</h2>
+    <p>Para dudas o reportes relacionados con la privacidad, abre un issue en el repositorio del proyecto:
+    <a href="https://github.com/FelipeFariasAlfaro/speakito" target="_blank" rel="noopener">github.com/FelipeFariasAlfaro/speakito</a>.</p>
+
+    <footer>Creado por Felipe Farías A.</footer>
+  </main>
+</body>
+</html>
