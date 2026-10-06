@@ -48,7 +48,7 @@ Gemini, Claude (Anthropic), OpenAI, DeepSeek y Ollama (local). La API key se gua
 - `sidepanel.*` — interfaz del panel lateral: extracción, chat, controles y UI.
 - `background.js` — service worker: llamadas a IA, menú contextual y gestión del offscreen.
 - `offscreen.*` — reproduce el audio (`speechSynthesis`) para que persista con el panel cerrado.
-- `content-extract.js` / `content-select.js` — extracción de contenido y selección en la página.
+- `content-extract.js` — script de extracción del contenido, inyectado bajo demanda en la pestaña activa.
 - `lib/` — `Readability.js`, `pdf.js` y utilidades de extracción de documentos.
 
 ## Privacidad

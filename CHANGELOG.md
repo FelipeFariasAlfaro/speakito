@@ -3,6 +3,14 @@
 Todas las novedades relevantes de Speakito se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.0.0/) y el proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
+## [1.2.0] - 2026-10-05
+
+### Cambiado
+- Se eliminó el permiso de host amplio (`<all_urls>`). Ahora la extracción de la página usa `activeTab` + `scripting` (bajo gesto del usuario) y los permisos de host se limitan a Google Docs, Google Drive y localhost (Ollama).
+
+### Eliminado
+- Botón flotante "Preguntar a Speakito" al seleccionar texto (requería un content script en todas las páginas). La misma función sigue disponible desde el menú contextual.
+
 ## [1.0.0] - 2026-10-05
 
 Primera versión pública.

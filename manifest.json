@@ -2,24 +2,15 @@
   "manifest_version": 3,
   "name": "Speakito — Lee y pregunta sobre la página",
   "description": "Lee en voz alta el contenido de la página actual (incluso traducido al español) y responde preguntas sobre él con IA.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "permissions": ["activeTab", "scripting", "storage", "sidePanel", "tts", "contextMenus", "tabs", "offscreen"],
-  "web_accessible_resources": [
-    {
-      "resources": ["lib/pdf.min.mjs", "lib/pdf.worker.min.mjs", "lib/doc-extract.js"],
-      "matches": ["<all_urls>"]
-    }
+  "host_permissions": [
+    "https://docs.google.com/*",
+    "https://drive.google.com/*",
+    "http://localhost/*"
   ],
-  "host_permissions": ["<all_urls>"],
   "background": { "service_worker": "background.js" },
   "action": { "default_title": "Abrir Speakito" },
   "side_panel": { "default_path": "sidepanel.html" },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content-select.js"],
-      "run_at": "document_idle"
-    }
-  ],
   "icons": { "128": "icons/icon128.png" }
 }
