@@ -123,6 +123,19 @@
       </select>
     </label>
 
+    <!-- Subsección: opciones de voz -->
+    <fieldset class="subsection">
+      <legend>Voz y audio</legend>
+      <label class="check">
+        <input id="set-voice-autosend" type="checkbox" />
+        <span>Enviar el dictado de voz directamente (sin editar)</span>
+      </label>
+      <label class="check">
+        <input id="set-autospeak-answers" type="checkbox" />
+        <span>Reproducir por audio automáticamente las respuestas de la IA</span>
+      </label>
+    </fieldset>
+
     <label>Tema de colores
       <select id="set-theme">
         <option value="ocean">Ocean (por defecto)</option>
@@ -160,14 +173,6 @@
       </label>
     </div>
     <div class="row">
-      <button id="btn-navread" class="ghost" title="Sigue leyendo aunque cambies de pestaña">
-        <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 9l5 3-5 3z" fill="currentColor"/></svg>
-        Léemelo navegando
-      </button>
-      <button id="btn-playlist" class="ghost" title="Lee todas las pestañas abiertas, una tras otra">
-        <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h11M4 12h11M4 17h7M17 10v8l5-4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Leer pestañas
-      </button>
       <button id="btn-bias" class="ghost" title="Detecta sesgos y afirmaciones sin fuente">
         <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 7l7-3 7 3M4 11a4 4 0 0 0 8 0M12 11a4 4 0 0 0 8 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Detectar sesgo
@@ -187,6 +192,10 @@
         <option value="md">.md</option>
         <option value="docx">.docx</option>
       </select>
+      <button id="btn-clear" class="ghost" title="Limpiar el chat">
+        <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Limpiar
+      </button>
     </div>
   </section>
 
@@ -194,6 +203,9 @@
 
   <footer class="composer">
     <textarea id="question" rows="2" placeholder="Pregunta algo sobre esta página..."></textarea>
+    <button id="btn-mic" class="mic-btn" title="Dictar por voz">
+      <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z" fill="currentColor"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4m-3 0h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
     <button id="btn-ask" class="primary" title="Enviar">
       <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 20 4l-7.5 16-2.2-6.3L4 11.5z" fill="currentColor"/></svg>
     </button>

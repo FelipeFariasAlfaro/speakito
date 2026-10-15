@@ -2,11 +2,10 @@
 // (Gemini, Claude, OpenAI, DeepSeek, Ollama) para no exponer la API key al
 // content script. Expone validación de key + listado de modelos y chat.
 
-chrome.action.onClicked.addListener((tab) => {
-  if (tab.windowId != null) chrome.sidePanel.open({ windowId: tab.windowId })
-})
-
 chrome.runtime.onInstalled.addListener(() => {
+  // El clic en el ícono abre el panel. La lectura se dispara desde el botón
+  // "Leer página" del panel, que es el gesto bajo el cual se solicita (si hace
+  // falta) el permiso de host opcional para la página actual.
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {})
   // Menú contextual: leer o preguntar sobre la selección sin abrir el panel a mano.
   chrome.contextMenus.create({ id: 'speakito-read', title: '🔊 Léemelo (Speakito)', contexts: ['selection'] }, () => chrome.runtime.lastError)

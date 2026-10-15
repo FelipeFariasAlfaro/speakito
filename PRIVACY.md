@@ -41,7 +41,7 @@ Speakito puede comunicarse con el proveedor de IA que configures (por ejemplo Ge
 
 ## Permisos
 
-Speakito solicita únicamente los permisos necesarios para su funcionamiento (acceso a la pestaña activa cuando lo invocas, almacenamiento de preferencias, síntesis de voz y gestión de pestañas para las funciones de lectura). Cada permiso se usa solo para la finalidad descrita en la ficha de la extensión.
+Speakito solicita únicamente los permisos necesarios para su funcionamiento: acceso al contenido de las páginas (para poder leer y analizar la página que abres) y almacenamiento de preferencias. El contenido de la página solo se procesa cuando pides una acción de lectura o consulta; no se guarda ni se registra tu historial de navegación. La lectura en voz alta usa la síntesis de voz del propio navegador (Web Speech API), que no requiere un permiso adicional. Cada permiso se usa solo para la finalidad descrita en la ficha de la extensión.
 
 ## Cambios en esta política
 

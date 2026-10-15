@@ -184,6 +184,9 @@ button.primary, button.ghost {
   background: var(--bg); color: var(--text);
 }
 
+/* Empuja el botón Limpiar al extremo derecho de su fila. */
+#btn-clear { margin-left: auto; }
+
 button.primary {
   background: var(--accent); color: #04121b; border: none;
   padding: 8px 14px; border-radius: 10px; font-weight: 700; cursor: pointer;
@@ -222,3 +225,37 @@ button:disabled { opacity: .5; cursor: default; }
   border: 1px solid var(--border); background: var(--panel); color: var(--text);
   font-family: inherit; font-size: 14px;
 }
+
+/* Botón de dictado por voz (micrófono) en el composer. */
+.mic-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; flex-shrink: 0;
+  background: transparent; color: var(--text);
+  border: 1px solid var(--border); border-radius: 10px; cursor: pointer;
+}
+.mic-btn:hover { background: var(--panel); }
+.mic-btn.recording {
+  color: #fff; background: #e0245e; border-color: #e0245e;
+  animation: mic-pulse 1.2s ease-in-out infinite;
+}
+@keyframes mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(224, 36, 94, .5); }
+  50% { box-shadow: 0 0 0 6px rgba(224, 36, 94, 0); }
+}
+
+/* Checkbox de ajustes (etiqueta con casilla + texto en línea). */
+label.check {
+  display: flex; flex-direction: row; align-items: center; gap: 8px;
+  cursor: pointer; font-size: 13px;
+}
+label.check input { width: auto; margin: 0; flex-shrink: 0; }
+
+/* Subsección agrupada en Ajustes (p. ej. opciones de voz). */
+fieldset.subsection {
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px 12px; margin: 4px 0 2px;
+}
+fieldset.subsection legend {
+  padding: 0 6px; font-size: 12px; color: var(--muted); font-weight: 600;
+}
+fieldset.subsection label.check { margin: 6px 0; }

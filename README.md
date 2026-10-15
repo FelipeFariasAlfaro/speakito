@@ -12,8 +12,6 @@ El audio corre en segundo plano, así que **sigue sonando aunque cierres el pane
 - **Documentos**: lee Google Docs/Slides, PDFs (incluido el visor de Chrome y Drive) y Office 365 online, que los lectores comunes no alcanzan.
 - **Explícame simple**: reexplica la página en lenguaje sencillo antes de leerla.
 - **Detectar sesgo**: analiza el texto buscando afirmaciones sin fuente, lenguaje tendencioso y posibles sesgos.
-- **Léemelo navegando**: sigue leyendo la nueva página cada vez que cambias de pestaña.
-- **Leer pestañas (playlist)**: encola todas las pestañas abiertas y las lee una tras otra, como un podcast.
 - **Preguntar**: chat sobre el contenido de la página, con respuestas en formato legible.
 - **Selección**: menú contextual para leer o preguntar sobre el texto que seleccionaste.
 - **Audio en segundo plano**: la reproducción continúa con el panel cerrado; el ícono de la barra muestra el estado.

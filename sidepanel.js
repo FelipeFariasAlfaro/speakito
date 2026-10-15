@@ -35,12 +35,15 @@ async function loadSettings() {
   const s = await chrome.storage.sync.get({
     provider: 'gemini', apiKey: '', model: '',
     ollamaUrl: 'http://localhost:11434', targetLang: 'español', theme: 'ocean', voiceName: '',
+    voiceAutoSend: false, autoSpeakAnswers: false,
   })
   $('set-provider').value = s.provider
   $('set-key').value = s.apiKey
   $('set-ollama-url').value = s.ollamaUrl
   $('set-lang').value = s.targetLang
   $('set-theme').value = s.theme
+  $('set-voice-autosend').checked = !!s.voiceAutoSend
+  $('set-autospeak-answers').checked = !!s.autoSpeakAnswers
   applyTheme(s.theme)
   populateVoices()
   if (s.voiceName) $('set-voice').value = s.voiceName
@@ -70,6 +73,14 @@ $('set-provider').addEventListener('change', (e) => toggleProviderFields(e.targe
 $('set-theme').addEventListener('change', (e) => {
   applyTheme(e.target.value)
   chrome.storage.sync.set({ theme: e.target.value })
+})
+// Persistir al instante la preferencia de autoenvío del dictado por voz.
+$('set-voice-autosend').addEventListener('change', (e) => {
+  chrome.storage.sync.set({ voiceAutoSend: e.target.checked })
+})
+// Persistir al instante la preferencia de leer en voz las respuestas de la IA.
+$('set-autospeak-answers').addEventListener('change', (e) => {
+  chrome.storage.sync.set({ autoSpeakAnswers: e.target.checked })
 })
 
 // 3-4-5. Validar la key y traer los modelos disponibles.
@@ -140,7 +151,14 @@ let lastBotText = ''
 let lastTitle = 'speakito'
 
 // ───────── Chat UI ─────────
-function addMsg(role, text, { speakable = false } = {}) {
+const CHAT_KEY = 'chatHistory'
+// Historial del chat en memoria. Se persiste en storage.local para que no se
+// pierda al cerrar y reabrir el panel (el panel se desmonta al cerrarse).
+let chatHistory = []
+
+// Construye el nodo DOM de un mensaje. No persiste ni toca el historial; eso lo
+// decide addMsg. Separado para poder reutilizarlo al restaurar.
+function renderMsg(role, text, { speakable = false } = {}) {
   const div = document.createElement('div')
   div.className = `msg ${role}`
   // Los mensajes del bot pueden traer markdown de la IA: se renderiza de forma
@@ -165,14 +183,73 @@ function addMsg(role, text, { speakable = false } = {}) {
   return div
 }
 
+function addMsg(role, text, opts = {}) {
+  const div = renderMsg(role, text, opts)
+  // Persistir el mensaje (los indicadores de carga usan addLoading y no pasan por aquí como persistibles).
+  chatHistory.push({ role, text, speakable: !!opts.speakable })
+  saveChat()
+  return div
+}
+
 function addLoading(label = 'Pensando...') {
-  const div = addMsg('bot', label)
+  // Los "cargando" no se persisten: se montan solo en el DOM.
+  const div = renderMsg('bot', label)
   div.classList.add('loading')
   return div
 }
 
+function saveChat() {
+  // Limitar el historial para no crecer sin tope.
+  if (chatHistory.length > 200) chatHistory = chatHistory.slice(-200)
+  chrome.storage.local.set({ [CHAT_KEY]: chatHistory }).catch(() => {})
+}
+
+async function restoreChat() {
+  const data = await chrome.storage.local.get({ [CHAT_KEY]: [] })
+  const saved = Array.isArray(data[CHAT_KEY]) ? data[CHAT_KEY] : []
+  chatHistory = []
+  for (const m of saved) {
+    renderMsg(m.role, m.text, { speakable: m.speakable })
+    chatHistory.push({ role: m.role, text: m.text, speakable: !!m.speakable })
+  }
+}
+
+function clearChat() {
+  chatHistory = []
+  chat.innerHTML = ''
+  lastBotText = ''
+  $('btn-export').disabled = true
+  chrome.storage.local.remove(CHAT_KEY).catch(() => {})
+}
+$('btn-clear').addEventListener('click', clearChat)
+
+// Garantiza que la extensión tenga permiso de host para leer páginas. Si no lo
+// tiene, lo solicita en runtime (optional_host_permissions). Debe invocarse en
+// respuesta a un gesto del usuario (p. ej. clic en "Leer página").
+//
+// Nota: sin permiso de host, chrome.tabs.query NO devuelve la URL de la pestaña,
+// así que no podemos pedir el permiso por hostname concreto (círculo huevo/gallina).
+// Pedimos los patrones amplios opcionales; una vez concedidos, ya tenemos acceso
+// a cualquier sitio y la URL de la pestaña queda disponible.
+async function ensureHostAccess() {
+  const ORIGINS = ['http://*/*', 'https://*/*']
+  const already = await chrome.permissions.contains({ origins: ORIGINS }).catch(() => false)
+  if (already) return
+  const granted = await chrome.permissions.request({ origins: ORIGINS }).catch(() => false)
+  if (!granted) {
+    throw new Error('Necesito permiso para leer páginas web. Pulsa "Leer página" otra vez y acepta el aviso del navegador.')
+  }
+}
+
 // ───────── Extraer contenido de la pestaña activa (incluye iframes) ─────────
 async function getPageContent(targetTab = null) {
+  // Asegurar permiso de host PRIMERO. Los hosts amplios son OPCIONALES
+  // (optional_host_permissions): se piden en runtime, bajo el gesto del usuario
+  // que pulsó "Leer página". Así el manifiesto no declara host amplio obligatorio
+  // (evita la revisión en profundidad). Además, sin este permiso chrome.tabs.query
+  // no devuelve la URL de la pestaña, por eso lo pedimos antes de consultarla.
+  if (!targetTab) await ensureHostAccess()
+
   const tab = targetTab || (await chrome.tabs.query({ active: true, currentWindow: true }))[0]
   if (!tab?.id) throw new Error('No hay pestaña activa.')
 
@@ -204,7 +281,7 @@ async function getPageContent(targetTab = null) {
       files: ['lib/Readability.js', 'content-extract.js'],
     })
   } catch (e) {
-    throw new Error('No se pudo acceder al contenido de la página.')
+    throw new Error('No se pudo acceder al contenido de la página. Si el navegador pidió un permiso, concédelo y vuelve a intentarlo.')
   }
 
   // Combinar el texto de todos los frames, el más largo primero (suele ser el
@@ -249,6 +326,9 @@ async function callAI({ mode, question, selection, skipPage, tab }) {
 
 // ───────── Acciones ─────────
 $('btn-read').addEventListener('click', async () => {
+  // Pedir el permiso de host como PRIMERA acción, dentro del gesto del clic
+  // (chrome.permissions.request exige un gesto de usuario reciente).
+  try { await ensureHostAccess() } catch (e) { addMsg('bot', '⚠️ ' + e.message); return }
   const loading = addLoading('Preparando lectura...')
   try {
     const text = await callAI({ mode: 'read' })
@@ -263,6 +343,7 @@ $('btn-read').addEventListener('click', async () => {
 
 // Explícame simple
 $('btn-simple').addEventListener('click', async () => {
+  try { await ensureHostAccess() } catch (e) { addMsg('bot', '⚠️ ' + e.message); return }
   const loading = addLoading('Explicando en simple...')
   try {
     const text = await callAI({ mode: 'simple' })
@@ -277,11 +358,14 @@ $('btn-simple').addEventListener('click', async () => {
 
 // Detectar sesgo / fuentes
 $('btn-bias').addEventListener('click', async () => {
+  try { await ensureHostAccess() } catch (e) { addMsg('bot', '⚠️ ' + e.message); return }
   const loading = addLoading('Analizando sesgos y fuentes...')
   try {
     const text = await callAI({ mode: 'bias' })
     loading.remove()
     addMsg('bot', text, { speakable: true })
+    const { autoSpeakAnswers } = await chrome.storage.sync.get({ autoSpeakAnswers: false })
+    if (autoSpeakAnswers) speak(text)
   } catch (e) {
     loading.remove()
     addMsg('bot', '⚠️ ' + e.message)
@@ -292,14 +376,21 @@ $('btn-bias').addEventListener('click', async () => {
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg?.type === 'SELECTION_ASK' && msg.selection) handleSelection(msg.selection)
   if (msg?.type === 'SELECTION_READ' && msg.selection) handleReadSelection(msg.selection)
+  // El usuario acaba de autorizar el micrófono en la pestaña dedicada.
+  if (msg?.type === 'MIC_GRANTED') addMsg('bot', '🎙️ Micrófono habilitado. Pulsa el botón de micrófono para dictar.')
 })
+
 async function handleSelection(selection) {
   addMsg('user', `🔎 "${selection.slice(0, 160)}${selection.length > 160 ? '…' : ''}"`)
   const loading = addLoading('Analizando selección...')
   try {
-    const text = await callAI({ mode: 'selection', selection })
+    // La selección ya trae el texto; no inyectamos en la página (evita pedir
+    // permiso de host fuera de un gesto del panel).
+    const text = await callAI({ mode: 'selection', selection, skipPage: true })
     loading.remove()
     addMsg('bot', text, { speakable: true })
+    const { autoSpeakAnswers } = await chrome.storage.sync.get({ autoSpeakAnswers: false })
+    if (autoSpeakAnswers) speak(text)
   } catch (e) {
     loading.remove()
     addMsg('bot', '⚠️ ' + e.message)
@@ -312,82 +403,11 @@ function handleReadSelection(selection) {
   speak(selection)
 }
 
-// ───────── Léemelo mientras navego (sigue leyendo al cambiar de pestaña) ─────────
-let navReadOn = false
-$('btn-navread').addEventListener('click', async () => {
-  navReadOn = !navReadOn
-  $('btn-navread').classList.toggle('active', navReadOn)
-  if (navReadOn) {
-    addMsg('bot', '🎧 Modo "léemelo navegando" activado. Leeré el contenido de cada página que abras.')
-    await readCurrentForNav()
-  } else {
-    addMsg('bot', 'Modo "léemelo navegando" desactivado.')
-    ttsSend('TTS_STOP')
-  }
-})
-async function readCurrentForNav() {
-  if (!navReadOn) return
-  const loading = addLoading('Preparando lectura...')
-  try {
-    const text = await callAI({ mode: 'read' })
-    loading.remove()
-    addMsg('bot', text, { speakable: true })
-    speak(text)
-  } catch (e) {
-    loading.remove()
-    addMsg('bot', '⚠️ ' + e.message)
-  }
-}
-// Al cambiar de pestaña activa o navegar, leer la nueva página.
-chrome.tabs.onActivated.addListener(() => { if (navReadOn) readCurrentForNav() })
-chrome.tabs.onUpdated.addListener((_id, info, tab) => {
-  if (navReadOn && info.status === 'complete' && tab.active) readCurrentForNav()
-})
-
-// ───────── Playlist: leer todas las pestañas abiertas, una tras otra ─────────
-let playlistOn = false
-$('btn-playlist').addEventListener('click', async () => {
-  if (playlistOn) { stopPlaylist(); return }
-  const tabs = (await chrome.tabs.query({ currentWindow: true }))
-    .filter((t) => /^https?:\/\//.test(t.url || ''))
-  if (!tabs.length) { addMsg('bot', 'No hay pestañas con contenido para leer.'); return }
-  playlistOn = true
-  $('btn-playlist').classList.add('active')
-  addMsg('bot', `🎵 Playlist: leeré ${tabs.length} pestaña(s), una tras otra.`)
-  readPlaylist(tabs, 0)
-})
-function stopPlaylist() {
-  playlistOn = false
-  $('btn-playlist').classList.remove('active')
-  tts.onDone = null
-  ttsSend('TTS_STOP')
-  hidePlayer()
-  addMsg('bot', 'Playlist detenida.')
-}
-async function readPlaylist(tabs, i) {
-  if (!playlistOn || i >= tabs.length) {
-    if (playlistOn) { playlistOn = false; $('btn-playlist').classList.remove('active'); addMsg('bot', '✅ Playlist terminada.') }
-    return
-  }
-  const tab = tabs[i]
-  const loading = addLoading(`Leyendo ${i + 1}/${tabs.length}: ${(tab.title || tab.url).slice(0, 60)}…`)
-  try {
-    const text = await callAI({ mode: 'read', tab })
-    loading.remove()
-    if (!playlistOn) return
-    addMsg('bot', `📄 ${tab.title || tab.url}`)
-    addMsg('bot', text, { speakable: true })
-    speak(text, () => readPlaylist(tabs, i + 1))   // al terminar, siguiente pestaña
-  } catch (e) {
-    loading.remove()
-    addMsg('bot', `⚠️ (${i + 1}/${tabs.length}) ${e.message}`)
-    readPlaylist(tabs, i + 1)   // saltar la que falle
-  }
-}
-
 async function sendQuestion() {
   const q = $('question').value.trim()
   if (!q) return
+  // Pedir permiso de host dentro del gesto, antes de otros awaits.
+  try { await ensureHostAccess() } catch (e) { addMsg('bot', '⚠️ ' + e.message); return }
   $('question').value = ''
   addMsg('user', q)
   const loading = addLoading()
@@ -395,6 +415,9 @@ async function sendQuestion() {
     const text = await callAI({ mode: 'ask', question: q })
     loading.remove()
     addMsg('bot', text, { speakable: true })
+    // Si el usuario activó la lectura automática, reproducir la respuesta.
+    const { autoSpeakAnswers } = await chrome.storage.sync.get({ autoSpeakAnswers: false })
+    if (autoSpeakAnswers) speak(text)
   } catch (e) {
     loading.remove()
     addMsg('bot', '⚠️ ' + e.message)
@@ -406,6 +429,103 @@ $('question').addEventListener('keydown', (e) => {
     e.preventDefault()
     sendQuestion()
   }
+})
+
+// ───────── Dictado por voz (reconocimiento de voz del navegador) ─────────
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+let recognition = null
+let recognizing = false
+
+function micLang() {
+  // El reconocedor necesita un código BCP-47 (es-ES / en-US), según el idioma de salida.
+  const lang = ($('set-lang')?.value || 'español').toLowerCase()
+  return (lang.startsWith('ing') || lang.startsWith('eng')) ? 'en-US' : 'es-ES'
+}
+
+function setMicState(on) {
+  recognizing = on
+  const btn = $('btn-mic')
+  btn.classList.toggle('recording', on)
+  btn.title = on ? 'Detener dictado' : 'Dictar por voz'
+}
+
+// ¿Está concedido el permiso de micrófono? El side panel no puede mostrar el
+// prompt de forma fiable, así que primero consultamos el estado. Si no está
+// concedido, abrimos una página dedicada (request-mic.html) que SÍ muestra el
+// diálogo; una vez aceptado, el permiso vale para toda la extensión.
+async function micGranted() {
+  try {
+    const status = await navigator.permissions.query({ name: 'microphone' })
+    return status.state === 'granted'
+  } catch (_) {
+    return false
+  }
+}
+
+async function startDictation() {
+  if (!SpeechRecognition) {
+    addMsg('bot', '⚠️ Tu navegador no admite el reconocimiento de voz.')
+    return
+  }
+  // Si el micrófono aún no está autorizado, abrir la página de permiso en una
+  // pestaña (el side panel no puede mostrar el prompt de forma fiable).
+  if (!(await micGranted())) {
+    chrome.tabs.create({ url: chrome.runtime.getURL('request-mic.html') })
+    addMsg('bot', 'Abrí una pestaña para que autorices el micrófono. Acepta el aviso del navegador y luego vuelve a pulsar el micrófono aquí.')
+    return
+  }
+
+  recognition = new SpeechRecognition()
+  recognition.lang = micLang()
+  recognition.interimResults = true
+  recognition.continuous = false
+
+  const box = $('question')
+  const baseText = box.value ? box.value.trim() + ' ' : ''
+
+  recognition.onresult = (event) => {
+    let finalText = ''
+    let interim = ''
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const res = event.results[i]
+      if (res.isFinal) finalText += res[0].transcript
+      else interim += res[0].transcript
+    }
+    // Mostrar el texto reconocido en el cuadro (parcial mientras habla, final al cerrar).
+    box.value = baseText + (finalText || interim)
+  }
+
+  recognition.onerror = (event) => {
+    setMicState(false)
+    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+      addMsg('bot', '⚠️ No se pudo acceder al micrófono (permiso denegado).')
+    } else if (event.error !== 'aborted' && event.error !== 'no-speech') {
+      addMsg('bot', '⚠️ Error de reconocimiento de voz: ' + event.error)
+    }
+  }
+
+  recognition.onend = async () => {
+    setMicState(false)
+    const dictated = $('question').value.trim()
+    if (!dictated) return
+    // Si el usuario eligió autoenvío, mandamos la pregunta directo a la IA.
+    const { voiceAutoSend } = await chrome.storage.sync.get({ voiceAutoSend: false })
+    if (voiceAutoSend) sendQuestion()
+    else $('question').focus()
+  }
+
+  setMicState(true)
+  try { recognition.start() } catch (_) { setMicState(false) }
+}
+
+function stopDictation() {
+  if (recognition) { try { recognition.stop() } catch (_) {} }
+  setMicState(false)
+}
+
+$('btn-mic').addEventListener('click', () => {
+  if (recognizing) stopDictation()
+  else startDictation()
 })
 
 // ───────── Text-to-Speech (voz en español) ─────────
@@ -593,7 +713,6 @@ plToggle.addEventListener('click', () => {
 })
 $('pl-stop').addEventListener('click', () => {
   tts.onDone = null
-  if (playlistOn) { playlistOn = false; $('btn-playlist').classList.remove('active') }
   ttsSend('TTS_STOP')
   hidePlayer()
 })
@@ -766,3 +885,4 @@ $('btn-export').addEventListener('click', () => {
 })
 
 loadSettings()
+restoreChat()

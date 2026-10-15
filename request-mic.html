@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Permiso de micrófono — Speakito</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: #0f1b24; color: #e8eef2; margin: 0;
+      display: flex; align-items: center; justify-content: center; min-height: 100vh;
+    }
+    .card {
+      max-width: 460px; padding: 32px; text-align: center;
+      background: #16242f; border-radius: 16px; border: 1px solid #24384a;
+    }
+    h1 { font-size: 20px; margin: 0 0 12px; }
+    p { font-size: 15px; line-height: 1.5; color: #b8c4cd; margin: 8px 0; }
+    .ok { color: #4ade80; font-weight: 600; }
+    .err { color: #f87171; font-weight: 600; }
+    .ico { font-size: 40px; margin-bottom: 8px; }
+    button {
+      margin-top: 16px; padding: 10px 20px; border-radius: 10px; border: none;
+      background: #26a8e0; color: #04121b; font-weight: 700; cursor: pointer; font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="ico">🎙️</div>
+    <h1>Permiso de micrófono</h1>
+    <p id="msg">Pulsa el botón y acepta el aviso del navegador para habilitar el dictado por voz en Speakito.</p>
+    <button id="btn-grant">Permitir micrófono</button>
+  </div>
+  <script src="request-mic.js"></script>
+</body>
+</html>
